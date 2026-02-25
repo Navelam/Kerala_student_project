@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold text-purple">
+                    <i class="fas fa-bell me-3"></i>Notifications
+                </h1>
+                <button class="btn btn-outline-purple" onclick="markAllAsRead()">
+                    <i class="fas fa-check-double me-2"></i>Mark All as Read
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-purple text-white">
+                    <h5 class="mb-0">Categories</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action active" data-category="all">
+                            All Notifications
+                            <span class="badge bg-purple rounded-pill float-end" id="count-all">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-category="exam">
+                            <i class="fas fa-calendar-alt me-2"></i>Exams
+                            <span class="badge bg-purple rounded-pill float-end" id="count-exam">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-category="result">
+                            <i class="fas fa-chart-line me-2"></i>Results
+                            <span class="badge bg-purple rounded-pill float-end" id="count-result">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-category="meeting">
+                            <i class="fas fa-users me-2"></i>Meetings
+                            <span class="badge bg-purple rounded-pill float-end" id="count-meeting">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-category="announcement">
+                            <i class="fas fa-bullhorn me-2"></i>Announcements
+                            <span class="badge bg-purple rounded-pill float-end" id="count-announcement">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-purple text-white">
+                    <h5 class="mb-0">Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                        <label class="form-check-label" for="emailNotifications">Email Notifications</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="smsNotifications">
+                        <label class="form-check-label" for="smsNotifications">SMS Notifications</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="desktopNotifications" checked>
+                        <label class="form-check-label" for="desktopNotifications">Desktop Notifications</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow">
+                <div class="card-header bg-purple text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" id="category-title">All Notifications</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Sort by
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" data-sort="newest">Newest First</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="oldest">Oldest First</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="unread">Unread First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="notification-list" id="notificationList">
+                        <!-- Notifications will be loaded here -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-purple" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading notifications...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentCategory = 'all';
+let currentSort = 'newest';
+
+$(document).ready(function() {
+    loadNotifications();
+    loadCounts();
+    
+    // Category filter
+    $('.list-group-item').click(function(e) {
+        e.preventDefault();
+        $('.list-group-item').removeClass('active');
+        $(this).addClass('active');
+        
+        currentCategory = $(this).data('category');
+        $('#category-title').text($(this).text().trim());
+        loadNotifications();
+    });
+    
+    // Sort options
+    $('[data-sort]').click(function(e) {
+        e.preventDefault();
+        currentSort = $(this).data('sort');
+        loadNotifications();
+    });
+});
+
+function loadNotifications() {
+    $.get(`/api/notifications?category=${currentCategory}&sort=${currentSort}`, function(data) {
+        displayNotifications(data);
+    });
+}
+
+function loadCounts() {
+    $.get('/api/notifications/counts', function(data) {
+        $('#count-all').text(data.total || 0);
+        $('#count-exam').text(data.exam || 0);
+        $('#count-result').text(data.result || 0);
+        $('#count-meeting').text(data.meeting || 0);
+        $('#count-announcement').text(data.announcement || 0);
+    });
+}
+
+function displayNotifications(notifications) {
+    let html = '';
+    
+    if (notifications.length === 0) {
+        html = `
+            <div class="text-center py-5">
+                <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                <h5>No Notifications</h5>
+                <p class="text-muted">You're all caught up!</p>
+            </div>
+        `;
+    } else {
+        notifications.forEach(function(notif) {
+            let icon = 'bell';
+            let bgClass = '';
+            
+            switch(notif.type) {
+                case 'exam': icon = 'calendar-alt'; bgClass = 'bg-info'; break;
+                case 'result': icon = 'chart-line'; bgClass = 'bg-success'; break;
+                case 'meeting': icon = 'users'; bgClass = 'bg-warning'; break;
+                case 'announcement': icon = 'bullhorn'; bgClass = 'bg-purple'; break;
+            }
+            
+            html += `
+                <div class="notification-item ${notif.is_read ? '' : 'unread'} p-3 border-bottom ${notif.is_read ? '' : 'bg-light'}" 
+                     data-id="${notif.id}" onclick="markAsRead(${notif.id})">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <div class="notification-icon ${bgClass} text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-${icon}"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">${notif.title}</h6>
+                                <small class="text-muted">${notif.time}</small>
+                            </div>
+                            <p class="mb-1">${notif.message}</p>
+                            <small class="text-muted">${notif.type}</small>
+                        </div>
+                        ${notif.is_read ? '' : '<span class="badge bg-purple ms-2">New</span>'}
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    $('#notificationList').html(html);
+}
+
+function markAsRead(id) {
+    $.post(`/api/notifications/${id}/read`, function() {
+        loadNotifications();
+        loadCounts();
+        updateNotificationBadge();
+    });
+}
+
+function markAllAsRead() {
+    $.post('/api/notifications/mark-all-read', function() {
+        loadNotifications();
+        loadCounts();
+        updateNotificationBadge();
+    });
+}
+
+function updateNotificationBadge() {
+    $.get('/api/notifications/unread-count', function(data) {
+        if (data.count > 0) {
+            $('#notificationCount').text(data.count).show();
+        } else {
+            $('#notificationCount').hide();
+        }
+    });
+}
+</script>
+
+<style>
+.notification-item {
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+.notification-item.unread {
+    border-left: 4px solid #6f42c1;
+}
+.bg-purple {
+    background-color: #6f42c1;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,919 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block title %}Enter Marks - {{ subject.name }}{% endblock %}
+
+{% block header_title %}Enter Marks{% endblock %}
+{% block header_subtitle %}Manual Entry Form - {{ subject.name }} ({{ subject.code }}){% endblock %}
+
+{% block extra_css %}
+<style>
+    .entry-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e9ecef;
+    }
+    
+    .form-title {
+        color: #6f42c1;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f3e9ff;
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .form-title i {
+        margin-right: 10px;
+        color: #9b59b6;
+    }
+    
+    .student-navigation {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .nav-btn {
+        background: #f3e9ff;
+        border: 2px solid #6f42c1;
+        color: #6f42c1;
+        padding: 8px 15px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .nav-btn:hover {
+        background: #6f42c1;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .nav-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .student-counter {
+        background: #6f42c1;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 25px;
+        font-weight: 600;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-label i {
+        color: #6f42c1;
+        width: 20px;
+        margin-right: 5px;
+    }
+    
+    .form-control, .form-select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        background: white;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #6f42c1;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+    }
+    
+    .form-control.error {
+        border-color: #dc3545;
+        background: #fff5f5;
+    }
+    
+    .input-hint {
+        font-size: 0.75rem;
+        color: #9b59b6;
+        margin-top: 5px;
+    }
+    
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px;
+    }
+    
+    .col-md-6 {
+        width: 50%;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    
+    .col-md-4 {
+        width: 33.333%;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    
+    .preview-card {
+        background: #f3e9ff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 25px;
+        border-left: 4px solid #6f42c1;
+    }
+    
+    .preview-title {
+        color: #6f42c1;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+    }
+    
+    .preview-item {
+        text-align: center;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(111, 66, 193, 0.1);
+    }
+    
+    .preview-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .preview-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #6f42c1;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #6f42c1, #9b59b6);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+        flex: 1;
+        min-width: 150px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(111, 66, 193, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+        flex: 1;
+        min-width: 150px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-info {
+        background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+        flex: 1;
+        min-width: 150px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(23, 162, 184, 0.4);
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #868e96);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+        flex: 1;
+        min-width: 150px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+    }
+    
+    .quick-fill {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+        align-items: center;
+    }
+    
+    .quick-fill-btn {
+        background: white;
+        border: 2px solid #6f42c1;
+        color: #6f42c1;
+        padding: 8px 15px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .quick-fill-btn:hover {
+        background: #6f42c1;
+        color: white;
+    }
+    
+    .alert-info {
+        background: #d1ecf1;
+        border-left: 4px solid #17a2b8;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+    
+    .alert-success {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        color: #155724;
+    }
+    
+    .subject-badge {
+        background: #f3e9ff;
+        color: #6f42c1;
+        padding: 5px 15px;
+        border-radius: 20px;
+        display: inline-block;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    .progress-tracker {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .progress-step {
+        text-align: center;
+        flex: 1;
+        position: relative;
+    }
+    
+    .progress-step:not(:last-child):after {
+        content: "→";
+        position: absolute;
+        right: -10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-weight: bold;
+    }
+    
+    .step-number {
+        width: 30px;
+        height: 30px;
+        background: #e9ecef;
+        color: #6c757d;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .step-number.active {
+        background: #6f42c1;
+        color: white;
+    }
+    
+    .step-number.completed {
+        background: #28a745;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    @media (max-width: 768px) {
+        .col-md-6, .col-md-4 {
+            width: 100%;
+        }
+        
+        .preview-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .form-title {
+            flex-direction: column;
+            gap: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="entry-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert-{{ category if category != 'message' else 'info' }} mb-4">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card">
+        <div class="form-title">
+            <div>
+                <i class="fas fa-pencil-alt"></i> Manual Marks Entry
+            </div>
+            <div class="student-navigation">
+                {% if prev_student %}
+                <a href="{{ url_for('teacher.enter_marks', subject_id=subject.id, student_id=prev_student.id) }}" 
+                   class="nav-btn">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% else %}
+                <span class="nav-btn disabled">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </span>
+                {% endif %}
+                
+                <span class="student-counter">
+                    {% if current_index and total_students %}
+                        {{ current_index }}/{{ total_students }}
+                    {% endif %}
+                </span>
+                
+                {% if next_student %}
+                <a href="{{ url_for('teacher.enter_marks', subject_id=subject.id, student_id=next_student.id) }}" 
+                   class="nav-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% else %}
+                <span class="nav-btn disabled">
+                    Next <i class="fas fa-chevron-right"></i>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="subject-badge">
+            <i class="fas fa-book me-2"></i> {{ subject.name }} ({{ subject.code }}) - Semester {{ subject.semester_id }}
+        </div>
+        
+        <!-- Progress Tracker -->
+        <div class="progress-tracker">
+            <div class="progress-step">
+                <div class="step-number {% if current_index %}active{% endif %}">1</div>
+                <div class="step-label">Select Student</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-number {% if selected_student %}active{% endif %}">2</div>
+                <div class="step-label">Enter Marks</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-number">3</div>
+                <div class="step-label">Preview & Save</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-number">4</div>
+                <div class="step-label">Next Student</div>
+            </div>
+        </div>
+        
+        <!-- Student Info if selected -->
+        {% if selected_student %}
+        <div class="alert-success">
+            <i class="fas fa-user-graduate me-2"></i>
+            <strong>Selected Student:</strong> {{ selected_student.name }} ({{ selected_student.registration_number }}) 
+            - Semester {{ selected_student.current_semester }}
+            {% if existing_marks %}
+            <span class="badge bg-success ms-2">Marks Already Entered</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="{{ url_for('teacher.save_marks', subject_id=subject.id) }}" id="marksForm" onsubmit="return validateForm()">
+            <!-- Student Selector -->
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-user-graduate"></i> Select Student <span class="text-danger">*</span></label>
+                <select name="student_id" class="form-select" required onchange="this.form.submit()">
+                    <option value="">-- Choose a student --</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}" {% if selected_student and selected_student.id == student.id %}selected{% endif %}>
+                        {{ student.name }} ({{ student.registration_number }}) - Sem {{ student.current_semester }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="input-hint">Select the student to enter marks for</div>
+            </div>
+            
+            <input type="hidden" name="subject_id" value="{{ subject.id }}">
+            
+            <!-- Only show marks entry if student is selected -->
+            {% if selected_student %}
+            <div class="row">
+                <!-- Attendance Section -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-calendar-alt"></i> Total Classes <span class="text-danger">*</span></label>
+                        <input type="number" name="total_classes" class="form-control" 
+                               value="{{ existing_marks.total_classes if existing_marks else 90 }}" min="1" max="200" step="1" required
+                               oninput="calculateMarks()" onkeypress="return onlyNumbers(event)"
+                               placeholder="Enter total classes">
+                        <div class="input-hint">Total classes conducted (1-200)</div>
+                    </div>
+
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-user-check"></i> Attended Classes <span class="text-danger">*</span></label>
+                        <input type="number" name="attended" class="form-control" 
+                               value="{{ existing_marks.attended if existing_marks else 45 }}" min="0" step="1" required
+                               oninput="calculateMarks()" onkeypress="return onlyNumbers(event)"
+                               placeholder="Enter attended classes">
+                        <div class="input-hint">Classes attended (0-Total)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Internal Marks -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-pencil-ruler"></i> Internal 1 (0-70) <span class="text-danger">*</span></label>
+                        <input type="number" name="internal1" class="form-control" 
+                               value="{{ existing_marks.internal1 if existing_marks else 35 }}" min="0" max="70" step="1" required
+                               oninput="calculateMarks()" onkeypress="return onlyNumbers(event)"
+                               placeholder="0-70">
+                        <div class="input-hint">Enter marks out of 70</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-pencil-ruler"></i> Internal 2 (0-70) <span class="text-danger">*</span></label>
+                        <input type="number" name="internal2" class="form-control" 
+                               value="{{ existing_marks.internal2 if existing_marks else 35 }}" min="0" max="70" step="1" required
+                               oninput="calculateMarks()" onkeypress="return onlyNumbers(event)"
+                               placeholder="0-70">
+                        <div class="input-hint">Enter marks out of 70</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Other Components -->
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-microphone-alt"></i> Seminar (0-10) <span class="text-danger">*</span></label>
+                        <input type="number" name="seminar" class="form-control" 
+                               value="{{ existing_marks.seminar if existing_marks else 8 }}" min="0" max="10" step="1" required
+                               oninput="calculateMarks()" onkeypress="return onlyNumbers(event)"
+                               placeholder="0-10">
+                        <div class="input-hint">Enter seminar marks</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-clipboard-check"></i> Assessment (0-10) <span class="text-danger">*</span></label>
+                        <input type="number" name="assessment" class="form-control" 
+                               value="{{ existing_marks.assessment if existing_marks else 8 }}" min="0" max="10" step="1" required
+                               oninput="calculateMarks()" onkeypress="return onlyNumbers(event)"
+                               placeholder="0-10">
+                        <div class="input-hint">Enter assessment marks</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- Empty for spacing -->
+                </div>
+            </div>
+            
+            <!-- Quick Fill Buttons -->
+            <div class="quick-fill">
+                <span class="form-label" style="margin-bottom:0;"><i class="fas fa-bolt"></i> Quick Fill:</span>
+                <button type="button" class="quick-fill-btn" onclick="fillExcellent()">Excellent</button>
+                <button type="button" class="quick-fill-btn" onclick="fillGood()">Good</button>
+                <button type="button" class="quick-fill-btn" onclick="fillAverage()">Average</button>
+                <button type="button" class="quick-fill-btn" onclick="fillPoor()">Poor</button>
+            </div>
+            
+            <!-- Live Preview -->
+            <div class="preview-card">
+                <div class="preview-title">
+                    <i class="fas fa-sync-alt"></i> Live Preview (Auto-updates)
+                </div>
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <div class="preview-label">Attendance %</div>
+                        <div class="preview-value" id="previewAttendance">90%</div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-label">Total/160</div>
+                        <div class="preview-value" id="previewTotal">86</div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-label">Final/20</div>
+                        <div class="preview-value" id="previewFinal">10.8</div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-label">Grade</div>
+                        <div id="previewGrade">
+                            <span class="grade-badge grade-c">C</span>
+                        </div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-label">Risk</div>
+                        <div id="previewRisk">
+                            <span class="risk-badge risk-safe">Safe</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button type="submit" name="action" value="save" class="btn-primary">
+                    <i class="fas fa-save me-2"></i> Save Marks
+                </button>
+                
+                {% if next_student %}
+                <button type="submit" name="action" value="save_next" class="btn-success">
+                    <i class="fas fa-save me-2"></i> Save & Next
+                </button>
+                {% endif %}
+                
+                <a href="{{ url_for('teacher.marks_list', subject_id=subject.id) }}" class="btn-info">
+                    <i class="fas fa-list me-2"></i> All Students
+                </a>
+                
+                <a href="{{ url_for('teacher.student_results', subject_id=subject.id) }}" class="btn-secondary">
+                    <i class="fas fa-chart-line me-2"></i> Show Results
+                </a>
+            </div>
+            {% endif %}
+        </form>
+        
+        <!-- Show All Students Results Link -->
+        {% if not selected_student %}
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('teacher.student_results', subject_id=subject.id) }}" class="btn-primary" style="display: inline-block; padding: 12px 40px;">
+                <i class="fas fa-chart-bar me-2"></i> View All Students Results
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Stats Card -->
+    <div class="form-card" style="margin-top: 20px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div>
+                <i class="fas fa-users text-purple me-2"></i>
+                <strong>Total Students:</strong> {{ stats.total if stats else students|length }}
+            </div>
+            <div>
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <strong>Marks Entered:</strong> {{ stats.entered if stats else 0 }}
+            </div>
+            <div>
+                <i class="fas fa-clock text-warning me-2"></i>
+                <strong>Pending:</strong> {{ stats.pending if stats else (students|length - (stats.entered if stats else 0)) }}
+            </div>
+            <div>
+                <a href="{{ url_for('teacher.download_results', subject_id=subject.id) }}" class="quick-fill-btn">
+                    <i class="fas fa-download me-1"></i> Download Marksheet
+                </a>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        {% set percentage = (stats.entered / stats.total * 100) if stats and stats.total and stats.total > 0 else 0 %}
+        <div style="margin-top: 15px; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: {{ percentage }}%; background: linear-gradient(90deg, #6f42c1, #9b59b6);"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Grade and Risk Styles -->
+<style>
+.grade-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: center;
+}
+.grade-aplus { background: #6f42c1; color: white; }
+.grade-a { background: #9b59b6; color: white; }
+.grade-b { background: #3498db; color: white; }
+.grade-c { background: #f1c40f; color: #2c3e50; }
+.grade-d { background: #e74c3c; color: white; }
+
+.risk-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.risk-critical { background: #dc3545; color: white; }
+.risk-average { background: #ffc107; color: #2c3e50; }
+.risk-safe { background: #28a745; color: white; }
+.risk-best { background: #6f42c1; color: white; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Grade and risk classes mapping
+const gradeClasses = {
+    'A+': 'grade-aplus',
+    'A': 'grade-a',
+    'B': 'grade-b',
+    'C': 'grade-c',
+    'D': 'grade-d'
+};
+
+const riskClasses = {
+    'Critical': 'risk-critical',
+    'High Risk': 'risk-critical',
+    'Average': 'risk-average',
+    'Safe': 'risk-safe',
+    'Best': 'risk-best'
+};
+
+// Only allow numbers in input fields
+function onlyNumbers(event) {
+    var charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+    }
+    return true;
+}
+
+// Calculate grade based on final marks (out of 20)
+function calculateGrade(final) {
+    if (final >= 18) return { grade: 'A+', class: 'grade-aplus' };
+    if (final >= 15) return { grade: 'A', class: 'grade-a' };
+    if (final >= 12) return { grade: 'B', class: 'grade-b' };
+    if (final >= 10) return { grade: 'C', class: 'grade-c' };
+    return { grade: 'D', class: 'grade-d' };
+}
+
+// Calculate risk status
+function calculateRisk(attendance, final) {
+    if (attendance < 70 || final < 10) return { risk: 'Critical', class: 'risk-critical' };
+    if (final < 15) return { risk: 'Average', class: 'risk-average' };
+    if (final >= 18) return { risk: 'Best', class: 'risk-best' };
+    return { risk: 'Safe', class: 'risk-safe' };
+}
+
+// Calculate all values live
+function calculateMarks() {
+    // Get values
+    let total_classes = parseInt(document.querySelector('input[name="total_classes"]')?.value) || 0;
+    let attended = parseInt(document.querySelector('input[name="attended"]')?.value) || 0;
+    let i1 = parseInt(document.querySelector('input[name="internal1"]')?.value) || 0;
+    let i2 = parseInt(document.querySelector('input[name="internal2"]')?.value) || 0;
+    let sem = parseInt(document.querySelector('input[name="seminar"]')?.value) || 0;
+    let assess = parseInt(document.querySelector('input[name="assessment"]')?.value) || 0;
+    
+    // Validate attended <= total
+    let attendedInput = document.querySelector('input[name="attended"]');
+    if (attendedInput) {
+        if (attended > total_classes && total_classes > 0) {
+            attendedInput.classList.add('error');
+        } else {
+            attendedInput.classList.remove('error');
+        }
+    }
+    
+    // Calculate attendance percentage
+    let attendance_percent = total_classes > 0 ? Math.round((attended / total_classes) * 100) : 0;
+    let previewAttendance = document.getElementById('previewAttendance');
+    if (previewAttendance) previewAttendance.textContent = attendance_percent + '%';
+    
+    // Calculate total marks (out of 160)
+    let total = i1 + i2 + sem + assess;
+    let previewTotal = document.getElementById('previewTotal');
+    if (previewTotal) previewTotal.textContent = total;
+    
+    // Calculate final marks (convert to 20)
+    let final = total > 0 ? Math.round((total / 160) * 20 * 10) / 10 : 0;
+    let previewFinal = document.getElementById('previewFinal');
+    if (previewFinal) previewFinal.textContent = final;
+    
+    // Calculate grade
+    let grade = calculateGrade(final);
+    let previewGrade = document.getElementById('previewGrade');
+    if (previewGrade) {
+        previewGrade.innerHTML = 
+            `<span class="grade-badge ${grade.class}">${grade.grade}</span>`;
+    }
+    
+    // Calculate risk
+    let risk = calculateRisk(attendance_percent, final);
+    let previewRisk = document.getElementById('previewRisk');
+    if (previewRisk) {
+        previewRisk.innerHTML = 
+            `<span class="risk-badge ${risk.class}">${risk.risk}</span>`;
+    }
+}
+
+// Quick fill functions
+function fillExcellent() {
+    document.querySelector('input[name="total_classes"]').value = 90;
+    document.querySelector('input[name="attended"]').value = 85;
+    document.querySelector('input[name="internal1"]').value = 65;
+    document.querySelector('input[name="internal2"]').value = 68;
+    document.querySelector('input[name="seminar"]').value = 10;
+    document.querySelector('input[name="assessment"]').value = 10;
+    calculateMarks();
+}
+
+function fillGood() {
+    document.querySelector('input[name="total_classes"]').value = 90;
+    document.querySelector('input[name="attended"]').value = 76;
+    document.querySelector('input[name="internal1"]').value = 55;
+    document.querySelector('input[name="internal2"]').value = 52;
+    document.querySelector('input[name="seminar"]').value = 8;
+    document.querySelector('input[name="assessment"]').value = 8;
+    calculateMarks();
+}
+
+function fillAverage() {
+    document.querySelector('input[name="total_classes"]').value = 90;
+    document.querySelector('input[name="attended"]').value =60;
+    document.querySelector('input[name="internal1"]').value = 45;
+    document.querySelector('input[name="internal2"]').value = 42;
+    document.querySelector('input[name="seminar"]').value = 6;
+    document.querySelector('input[name="assessment"]').value = 6;
+    calculateMarks();
+}
+
+function fillPoor() {
+    document.querySelector('input[name="total_classes"]').value = 90;
+    document.querySelector('input[name="attended"]').value =50;
+    document.querySelector('input[name="internal1"]').value = 25;
+    document.querySelector('input[name="internal2"]').value = 20;
+    document.querySelector('input[name="seminar"]').value = 3;
+    document.querySelector('input[name="assessment"]').value = 3;
+    calculateMarks();
+}
+
+// Form validation
+function validateForm() {
+    let student = document.querySelector('select[name="student_id"]')?.value;
+    if (!student) {
+        alert('❌ Please select a student!');
+        return false;
+    }
+    
+    let total_classes = parseInt(document.querySelector('input[name="total_classes"]')?.value) || 0;
+    let attended = parseInt(document.querySelector('input[name="attended"]')?.value) || 0;
+    let i1 = parseInt(document.querySelector('input[name="internal1"]')?.value) || 0;
+    let i2 = parseInt(document.querySelector('input[name="internal2"]')?.value) || 0;
+    let sem = parseInt(document.querySelector('input[name="seminar"]')?.value) || 0;
+    let assess = parseInt(document.querySelector('input[name="assessment"]')?.value) || 0;
+    
+    if (total_classes <= 0) {
+        alert('❌ Total classes must be greater than 0!');
+        return false;
+    }
+    
+    if (attended > total_classes) {
+        alert('❌ Attended classes cannot exceed total classes!');
+        return false;
+    }
+    
+    if (i1 < 0 || i1 > 70 || i2 < 0 || i2 > 70) {
+        alert('❌ Internal marks must be between 0 and 70!');
+        return false;
+    }
+    
+    if (sem < 0 || sem > 10 || assess < 0 || assess > 10) {
+        alert('❌ Seminar and Assessment marks must be between 0 and 10!');
+        return false;
+    }
+    
+    return confirm('✅ Save these marks?');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateMarks();
+    
+    // Add input listeners
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', calculateMarks);
+    });
+});
+</script>
+{% endblock %}
