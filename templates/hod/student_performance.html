@@ -1,0 +1,295 @@
+{% extends "hod/base_hod.html" %}
+
+{% block title %}Student Performance - SPAS{% endblock %}
+
+{% block header_title %}Student Performance{% endblock %}
+{% block header_subtitle %}View all student performances{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .teacher-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .teacher-stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .teacher-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(111, 66, 193, 0.1);
+        border-color: #6f42c1;
+    }
+    
+    .teacher-stat-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    
+    .teacher-stat-numbers {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+    
+    .teacher-stat-total {
+        color: #6f42c1;
+        font-weight: 600;
+    }
+    
+    .teacher-stat-critical {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .progress {
+        height: 5px;
+        margin-top: 8px;
+        border-radius: 3px;
+    }
+    
+    .badge-risk {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-critical { background: #ffebee; color: #c62828; }
+    .badge-high { background: #fff3e0; color: #ef6c00; }
+    .badge-average { background: #e3f2fd; color: #1565c0; }
+    .badge-safe { background: #e8f5e9; color: #2e7d32; }
+    .badge-best { background: #f3e9ff; color: #6f42c1; }
+    .badge-secondary { background: #f5f5f5; color: #616161; }
+    
+    .bg-purple-soft { background: #f3e9ff; }
+    .text-purple { color: #6f42c1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Section -->
+<div class="filter-section">
+    <form method="GET" action="{{ url_for('hod.student_performance') }}" class="row">
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Teacher</label>
+            <select name="teacher_id" class="form-select">
+                <option value="all">All Teachers</option>
+                {% for teacher in teachers %}
+                <option value="{{ teacher.id }}" {% if current_filters.teacher_id == teacher.id|string %}selected{% endif %}>
+                    {{ teacher.full_name or teacher.username }}
+                </option>
+                {% endfor %}
+                <option value="unassigned" {% if current_filters.teacher_id == 'unassigned' %}selected{% endif %}>
+                    Unassigned Students
+                </option>
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label fw-bold">Semester</label>
+            <select name="semester" class="form-select">
+                <option value="all">All Semesters</option>
+                {% for sem in available_semesters %}
+                <option value="{{ sem }}" {% if current_filters.semester == sem|string %}selected{% endif %}>
+                    Semester {{ sem }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label fw-bold">Risk Level</label>
+            <select name="risk" class="form-select">
+                <option value="all">All Risks</option>
+                <option value="Critical" {% if current_filters.risk == 'Critical' %}selected{% endif %}>Critical</option>
+                <option value="High Risk" {% if current_filters.risk == 'High Risk' %}selected{% endif %}>High Risk</option>
+                <option value="Average" {% if current_filters.risk == 'Average' %}selected{% endif %}>Average</option>
+                <option value="Safe" {% if current_filters.risk == 'Safe' %}selected{% endif %}>Safe</option>
+                <option value="Best" {% if current_filters.risk == 'Best' %}selected{% endif %}>Best</option>
+                <option value="No Data" {% if current_filters.risk == 'No Data' %}selected{% endif %}>No Data</option>
+            </select>
+        </div>
+        
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Search</label>
+            <input type="text" name="search" class="form-control" 
+                   value="{{ current_filters.search }}" 
+                   placeholder="Name or Registration No...">
+        </div>
+        
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-purple w-100">
+                <i class="fas fa-search me-2"></i>Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Teacher Stats Cards -->
+<div class="teacher-stats">
+    {% for t_id, stats in teacher_stats.items() %}
+    <a href="?teacher_id={{ t_id }}" class="teacher-stat-card">
+        <div class="teacher-stat-name">{{ stats.name }}</div>
+        <div class="teacher-stat-numbers">
+            <span class="teacher-stat-total">Total: {{ stats.total }}</span>
+            <span class="teacher-stat-critical">Critical: {{ stats.critical }}</span>
+        </div>
+        {% if stats.total > 0 %}
+        <div class="progress">
+            <div class="progress-bar bg-danger" 
+                 style="width: {{ (stats.critical / stats.total * 100)|round }}%"></div>
+        </div>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Summary Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6>Total Students</h6>
+                <h3>{{ total_students }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6>Critical</h6>
+                <h3>{{ total_critical }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>With Data</h6>
+                <h3>{{ performance_data|selectattr('has_data', 'equalto', true)|list|length }}</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h6>No Data</h6>
+                <h3>{{ performance_data|selectattr('has_data', 'equalto', false)|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Students Table -->
+<div class="card">
+    <div class="card-header bg-purple text-white">
+        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Student List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover datatable">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Semester</th>
+                        <th>Subjects</th>
+                        <th>Teachers</th>
+                        <th>Avg Marks</th>
+                        <th>Risk Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in performance_data %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-purple-soft text-purple">
+                                {{ item.student.registration_number }}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="fas fa-user-graduate text-purple me-2"></i>
+                            {{ item.student.name }}
+                        </td>
+                        <td>
+                            {% if item.student.course %}
+                                {{ item.student.course.name }}
+                            {% else %}
+                                B.Sc Computer Science
+                            {% endif %}
+                        </td>
+                        <td>Semester {{ item.student.current_semester }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ item.subject_count }}</span>
+                        </td>
+                        <td>
+                            {% if item.teachers %}
+                                {% for teacher in item.teachers[:2] %}
+                                    <span class="badge bg-purple-soft text-purple mb-1">
+                                        {{ teacher.name }}
+                                    </span>
+                                {% endfor %}
+                                {% if item.teacher_count > 2 %}
+                                    <span class="badge bg-secondary">+{{ item.teacher_count - 2 }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Not Assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ item.avg_marks }}/20</strong>
+                        </td>
+                        <td>
+                            <span class="badge-risk 
+                                {% if item.risk_status == 'Critical' %}badge-critical
+                                {% elif item.risk_status == 'High Risk' %}badge-high
+                                {% elif item.risk_status == 'Average' %}badge-average
+                                {% elif item.risk_status == 'Safe' %}badge-safe
+                                {% elif item.risk_status == 'Best' %}badge-best
+                                {% else %}badge-secondary{% endif %}">
+                                {{ item.risk_status }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/hod/student-detail/{{ item.student.id }}" 
+                               class="btn btn-sm btn-outline-purple">
+                                <i class="fas fa-chart-line me-1"></i>View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No students found matching your criteria</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

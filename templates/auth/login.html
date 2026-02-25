@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Student Performance Analysis System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #f3e9ff 100%);
+    }
+    
+    .login-card {
+        max-width: 480px;
+        width: 100%;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(111, 66, 193, 0.2);
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .login-header {
+        background: linear-gradient(135deg, #6f42c1, #9b59b6);
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .login-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .login-header i {
+        font-size: 70px;
+        margin-bottom: 15px;
+        animation: float 3s ease-in-out infinite;
+        position: relative;
+        z-index: 1;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .login-header h3 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .login-header p {
+        opacity: 0.9;
+        margin: 0;
+        font-size: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .login-body {
+        padding: 40px 30px;
+        background: white;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.95rem;
+    }
+    
+    .form-label i {
+        color: #6f42c1;
+        margin-right: 8px;
+        width: 20px;
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        color: #6f42c1;
+        z-index: 2;
+        font-size: 1.1rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px 15px 14px 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        background: white;
+    }
+    
+    .form-control:focus {
+        border-color: #6f42c1;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(111, 66, 193, 0.1);
+    }
+    
+    .form-control:hover {
+        border-color: #9b59b6;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 2;
+        background: white;
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+    
+    .password-toggle:hover {
+        color: #6f42c1;
+        background: #f3e9ff;
+    }
+    
+    .role-select-wrapper {
+        position: relative;
+    }
+    
+    .role-select {
+        width: 100%;
+        padding: 14px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        background: white;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236f42c1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 16px;
+    }
+    
+    .role-select:focus {
+        border-color: #6f42c1;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(111, 66, 193, 0.1);
+    }
+    
+    .role-select:hover {
+        border-color: #9b59b6;
+    }
+    
+    .role-hint-container {
+        min-height: 50px;
+        margin-top: 10px;
+    }
+    
+    .role-hint {
+        display: none;
+        font-size: 0.9rem;
+        padding: 12px 15px;
+        border-radius: 10px;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .role-hint.student {
+        background: #e3f2fd;
+        color: #0d47a1;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .role-hint.teacher {
+        background: #fff3e0;
+        color: #e65100;
+        border-left: 4px solid #ff9800;
+    }
+    
+    .role-hint.hod {
+        background: #fff8e1;
+        color: #ff6f00;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .role-hint.coordinator {
+        background: #e8f5e8;
+        color: #1b5e20;
+        border-left: 4px solid #4caf50;
+    }
+    
+    .role-hint.principal {
+        background: #f3e5f5;
+        color: #4a148c;
+        border-left: 4px solid #9c27b0;
+    }
+    
+    .role-hint i {
+        margin-right: 8px;
+        font-size: 1rem;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin: 25px 0;
+    }
+    
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin-right: 10px;
+        cursor: pointer;
+        border: 2px solid #e9ecef;
+    }
+    
+    .form-check-input:checked {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+    }
+    
+    .form-check-label {
+        color: #6c757d;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+    
+    .forgot-link {
+        margin-left: auto;
+        color: #6f42c1;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .forgot-link:hover {
+        color: #5a2d9c;
+        text-decoration: underline;
+    }
+    
+    .btn-login {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #6f42c1, #9b59b6);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-login::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-login:hover::before {
+        left: 100%;
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(111, 66, 193, 0.4);
+    }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
+    .btn-login i {
+        font-size: 1.2rem;
+    }
+    
+    .login-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .login-footer p {
+        color: #6c757d;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+    }
+    
+    .login-footer a {
+        color: #6f42c1;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .login-footer a:hover {
+        color: #5a2d9c;
+        text-decoration: underline;
+    }
+    
+    .info-message {
+        background: #f3e9ff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-left: 5px solid #6f42c1;
+        box-shadow: 0 5px 15px rgba(111, 66, 193, 0.1);
+    }
+    
+    .info-message h6 {
+        color: #6f42c1;
+        margin-bottom: 15px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-message h6 i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .info-item {
+        background: white;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .info-item p {
+        margin: 5px 0;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-item i {
+        width: 20px;
+        margin-right: 8px;
+        color: #9b59b6;
+    }
+    
+    .info-item strong {
+        color: #2c3e50;
+        margin-right: 5px;
+    }
+    
+    .info-note {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed #d1b3ff;
+        font-size: 0.85rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-note i {
+        margin-right: 8px;
+        color: #6f42c1;
+    }
+    
+    .alert {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: none;
+        border-left: 4px solid;
+    }
+    
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border-left-color: #28a745;
+    }
+    
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border-left-color: #dc3545;
+    }
+    
+    .alert-warning {
+        background: #fff3cd;
+        color: #856404;
+        border-left-color: #ffc107;
+    }
+    
+    .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border-left-color: #17a2b8;
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #6f42c1;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 576px) {
+        .login-header {
+            padding: 30px 20px;
+        }
+        
+        .login-header i {
+            font-size: 50px;
+        }
+        
+        .login-header h3 {
+            font-size: 1.8rem;
+        }
+        
+        .login-body {
+            padding: 30px 20px;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .btn-login {
+            padding: 14px;
+            font-size: 1rem;
+        }
+        
+        .form-check {
+            flex-wrap: wrap;
+        }
+        
+        .forgot-link {
+            margin-left: 0;
+            margin-top: 10px;
+            width: 100%;
+            text-align: right;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Welcome Back!</h3>
+            <p>Login to access your dashboard</p>
+        </div>
+        
+        <div class="login-body">
+            <!-- Display Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Login Info Message -->
+            <div class="info-message">
+                <h6><i class="fas fa-info-circle"></i> Demo Login Credentials</h6>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <p><i class="fas fa-user-graduate"></i> <strong>Student:</strong> cs_stu1</p>
+                        <p><i class="fas fa-lock"></i> <strong>Password:</strong> 1234</p>
+                    </div>
+                    <div class="info-item">
+                        <p><i class="fas fa-chalkboard-teacher"></i> <strong>Teacher:</strong> cs_teacher1</p>
+                        <p><i class="fas fa-lock"></i> <strong>Password:</strong> 123</p>
+                    </div>
+                    <div class="info-item">
+                        <p><i class="fas fa-user-tie"></i> <strong>HOD:</strong> hod_cs</p>
+                        <p><i class="fas fa-lock"></i> <strong>Password:</strong> hod123</p>
+                    </div>
+                    <div class="info-item">
+                        <p><i class="fas fa-calendar-alt"></i> <strong>Coordinator:</strong> coord_cs</p>
+                        <p><i class="fas fa-lock"></i> <strong>Password:</strong> coord123</p>
+                    </div>
+                    <div class="info-item">
+                        <p><i class="fas fa-user-crown"></i> <strong>Principal:</strong> principal</p>
+                        <p><i class="fas fa-lock"></i> <strong>Password:</strong> 123</p>
+                    </div>
+                </div>
+                <div class="info-note">
+                    <i class="fas fa-shield-alt"></i> Select your role from the dropdown below
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                
+                <!-- Role Dropdown -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user-tag"></i> Select Your Role
+                    </label>
+                    <div class="role-select-wrapper">
+                        <select class="role-select" id="role" name="role" required>
+                            <option value="" selected disabled>-- Choose your role --</option>
+                            {% for role in roles %}
+                                <option value="{{ role.value }}" {% if request.args.get('role') == role.value %}selected{% endif %}>
+                                    {{ role.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Role Hints Container -->
+                    <div class="role-hint-container">
+                        <div id="studentHint" class="role-hint student">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Student Login:</strong> Use username like cs_stu1, bca_stu1, etc. Password: 1234
+                        </div>
+                        <div id="teacherHint" class="role-hint teacher">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Teacher Login:</strong> Use username like cs_teacher1, bca_teacher1, etc. Password: 123
+                        </div>
+                        <div id="hodHint" class="role-hint hod">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>HOD Login:</strong> Use username like hod_cs, hod_bca, etc. Password: hod123
+                        </div>
+                        <div id="coordinatorHint" class="role-hint coordinator">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Coordinator Login:</strong> Use username like coord_cs, coord_bca, etc. Password: coord123
+                        </div>
+                        <div id="principalHint" class="role-hint principal">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Principal Login:</strong> Username: principal, Password: 123
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Username / Registration Number
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="Enter your username" value="{{ request.form.username }}" required>
+                    </div>
+                </div>
+                
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Enter your password" required>
+                        <span class="password-toggle" id="togglePassword">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Remember Me & Forgot Password -->
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember" {% if request.form.remember %}checked{% endif %}>
+                    <label class="form-check-label" for="remember">Remember me on this device</label>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">
+                        <i class="fas fa-question-circle"></i> Forgot Password?
+                    </a>
+                </div>
+                
+                <!-- Login Button -->
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p>Don't have an account? <a href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i>Register here</a></p>
+                <p class="mt-2"><a href="{{ url_for('public.index') }}"><i class="fas fa-home me-1"></i>Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Toggle password visibility
+    $('#togglePassword').click(function() {
+        const password = $('#password');
+        const type = password.attr('type') === 'password' ? 'text' : 'password';
+        password.attr('type', type);
+        $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+    });
+    
+    // Show role hints based on selection
+    function showRoleHint(role) {
+        // Hide all hints first
+        $('.role-hint').hide();
+        
+        // Show relevant hint with animation
+        if (role === 'student') {
+            $('#studentHint').fadeIn(300);
+        } else if (role === 'teacher') {
+            $('#teacherHint').fadeIn(300);
+        } else if (role === 'hod') {
+            $('#hodHint').fadeIn(300);
+        } else if (role === 'coordinator') {
+            $('#coordinatorHint').fadeIn(300);
+        } else if (role === 'principal') {
+            $('#principalHint').fadeIn(300);
+        }
+    }
+    
+    // Check if role is pre-selected from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedRole = urlParams.get('role');
+    if (selectedRole) {
+        $('#role').val(selectedRole);
+        showRoleHint(selectedRole);
+    }
+    
+    // Handle role change
+    $('#role').change(function() {
+        const role = $(this).val();
+        showRoleHint(role);
+        
+        // Auto-fill demo credentials based on role (optional - for development)
+        if (role === 'student') {
+            $('#username').val('cs_stu1');
+            $('#password').val('1234');
+        } else if (role === 'teacher') {
+            $('#username').val('cs_teacher1');
+            $('#password').val('123');
+        } else if (role === 'hod') {
+            $('#username').val('hod_cs');
+            $('#password').val('hod123');
+        } else if (role === 'coordinator') {
+            $('#username').val('coord_cs');
+            $('#password').val('coord123');
+        } else if (role === 'principal') {
+            $('#username').val('principal');
+            $('#password').val('123');
+        }
+    });
+    
+    // Form validation and submission
+    $('#loginForm').submit(function(e) {
+        const role = $('#role').val();
+        const username = $('#username').val().trim();
+        const password = $('#password').val().trim();
+        
+        // Validation
+        if (!role) {
+            e.preventDefault();
+            showNotification('Please select your role', 'warning');
+            $('#role').focus();
+            return false;
+        }
+        
+        if (!username) {
+            e.preventDefault();
+            showNotification('Please enter your username', 'warning');
+            $('#username').focus();
+            return false;
+        }
+        
+        if (!password) {
+            e.preventDefault();
+            showNotification('Please enter your password', 'warning');
+            $('#password').focus();
+            return false;
+        }
+        
+        // Show loading state
+        const $btn = $('#loginBtn');
+        $btn.html('<span class="spinner"></span> Logging in...').prop('disabled', true);
+        
+        // Allow form to submit
+        return true;
+    });
+    
+    // Show notification function
+    function showNotification(message, type) {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        // Remove existing alerts
+        $('.alert').remove();
+        
+        // Insert new alert at the top of login body
+        $('.login-body').prepend(alertHtml);
+        
+        // Auto dismiss after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
+    
+    // Clear button loading state on page load (in case of back button)
+    $(window).on('pageshow', function() {
+        $('#loginBtn').html('<i class="fas fa-sign-in-alt"></i> Login to Dashboard').prop('disabled', false);
+    });
+    
+    // Input field effects
+    $('.form-control').on('focus', function() {
+        $(this).closest('.input-wrapper').find('.input-icon').css('color', '#6f42c1');
+    }).on('blur', function() {
+        $(this).closest('.input-wrapper').find('.input-icon').css('color', '#6c757d');
+    });
+});
+</script>
+{% endblock %}

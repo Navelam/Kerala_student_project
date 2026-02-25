@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - SPAS{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-purple text-white">
+                    <h4 class="mb-0"><i class="fas fa-bell me-2"></i>Notifications</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Welcome to SPAS</h5>
+                                <small>Just now</small>
+                            </div>
+                            <p class="mb-1">Your account has been created successfully.</p>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Exam Schedule Updated</h5>
+                                <small>2 days ago</small>
+                            </div>
+                            <p class="mb-1">Internal exam 1 schedule has been published.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
